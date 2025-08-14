@@ -1,15 +1,19 @@
 import argparse
 import os
 import shutil
-from langchain.document_loaders.pdf import PyPDFDirectoryLoader
+import logging
+from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from get_embedding_function import get_embedding_function
-from langchain.vectorstores.chroma import Chroma
+from langchain_community.vectorstores import Chroma
 
 
 CHROMA_PATH = "chroma"
 DATA_PATH = "data"
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 def main():
@@ -25,10 +29,14 @@ def main():
     # Create (or update) the data store.
     documents = load_documents()
     chunks = split_documents(documents)
-    add_to_chroma(chunks)
+    logging.info(f"Number of chunks created: {len(chunks)}")
+    # add_to_chroma(chunks)
 
 
 def load_documents():
+    if not os.path.exists(DATA_PATH):
+        logging.error(f"Data path '{DATA_PATH}' does not exist.")
+        raise FileNotFoundError(f"Data path '{DATA_PATH}' does not exist.")
     document_loader = PyPDFDirectoryLoader(DATA_PATH)
     return document_loader.load()
 
@@ -103,7 +111,14 @@ def calculate_chunk_ids(chunks):
 
 def clear_database():
     if os.path.exists(CHROMA_PATH):
-        shutil.rmtree(CHROMA_PATH)
+        confirmation = input(f"Are you sure you want to clear the database at '{CHROMA_PATH}'? (yes/no): ")
+        if confirmation.lower() == "yes":
+            shutil.rmtree(CHROMA_PATH)
+            logging.info(f"Database at '{CHROMA_PATH}' cleared.")
+        else:
+            logging.info("Database reset canceled.")
+    else:
+        logging.warning(f"Database path '{CHROMA_PATH}' does not exist.")
 
 
 if __name__ == "__main__":
