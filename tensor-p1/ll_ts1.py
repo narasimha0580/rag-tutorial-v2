@@ -1,5 +1,6 @@
 import tensorflow as tf
 import datetime
+import matplotlib.pyplot as plt
 
 print('Step 1: Importing libraries')
 
@@ -10,6 +11,22 @@ print(f'x_train shape: {x_train.shape}, y_train shape: {y_train.shape}')
 print(f'x_test shape: {x_test.shape}, y_test shape: {y_test.shape}')
 print('First training label:', y_train[0])
 print('First training image (as array):\n', x_train[0])
+
+# Show the first image visually
+plt.imshow(x_train[0], cmap='gray')
+plt.title(f'Label: {y_train[0]}')
+plt.axis('off')
+plt.show()
+
+# Show a grid of the first 12 MNIST training images with their labels
+plt.figure(figsize=(10, 3))
+for i in range(12):
+    plt.subplot(2, 6, i + 1)
+    plt.imshow(x_train[i], cmap='gray')
+    plt.title(f'Label: {y_train[i]}')
+    plt.axis('off')
+plt.suptitle('First 12 MNIST Training Images')
+plt.show()
 
 print('Step 3: Normalizing pixel values to [0, 1] range')
 x_train, x_test = x_train / 255.0, x_test / 255.0
@@ -38,7 +55,7 @@ log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 print('Step 6: Starting training...')
-history = model.fit(x_train, y_train, epochs=5, validation_data=(x_test, y_test), callbacks=[tensorboard_callback])
+history = model.fit(x_train, y_train, epochs=1, validation_data=(x_test, y_test), callbacks=[tensorboard_callback])
 
 print('Step 7: Training complete!')
 print('Final training accuracy:', history.history['accuracy'][-1])
@@ -52,7 +69,19 @@ print(f'Test accuracy: {test_acc}, Test loss: {test_loss}')
 
 print('Step 9: Predicting the first test image...')
 predictions = model.predict(x_test)
+first_pred = tf.argmax(predictions[0]).numpy()
+first_actual = y_test[0]
 print('Model raw output (probabilities) for first test image:', predictions[0])
-print("Model's predicted digit:", tf.argmax(predictions[0]).numpy())
-print('Actual digit:', y_test[0])
+print("Model's predicted digit:", first_pred)
+print('Actual digit:', first_actual)
+
+# Visualize the first test image with predicted and actual label
+import matplotlib.pyplot as plt
+plt.imshow(x_test[0], cmap='gray')
+plt.title(f'Predicted: {first_pred}, Actual: {first_actual}')
+plt.axis('off')
+plt.show()
+
+avarage= predictions[0].mean()
+print('Average of predicted probabilities for first test image:', avarage)
 
